@@ -292,11 +292,11 @@ This project is licensed under the **MIT License**. See the [LICENSE](https://gi
 
 ## Contact
 
-**Emir SoGood**
+**AryanThodupunuri**
 
-- **GitHub**: [@sogutemir](https://github.com/sogutemir)
-- **Email**: [sogutemir72@gmail.com](mailto:sogutemir72@gmail.com)
+- **GitHub**: [@AryanThodupunuri](https://github.com/AryanThodupunuri)
+- **Email**: [aryan20544@gmail.com](mailto:aryan20544@gmail.com)
 
-Project Link: [FoodOrderingSystem](https://github.com/sogutemir/FoodOrderingSystem)
+Project Link: [food-ordering-system]([https://github.com/AryanThodupunuri/food-ordering-system])
 
 ---
