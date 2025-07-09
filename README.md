@@ -24,9 +24,11 @@
 
 ## Overview
 
-**Food Ordering System** is a backend application built using a microservices architecture to facilitate seamless and efficient food ordering processes. Customers can place orders from various restaurants, make secure payments, and receive real-time updates, while restaurants can manage orders and menus effectively.
+This project is a backend system for a food ordering app, designed around a microservices architecture. It lets customers place orders from restaurants, handles payments, manages menus, and sends real-time updates—all behind the scenes.
 
-_This README will be continuously updated to reflect the latest changes and improvements as the project progresses._
+I built it using Java 17 and Spring Boot, with a strong focus on clean code and scalable design. Each part of the system (like ordering, payments, restaurant ops, and customer info) is broken into independent services.
+
+To bring it to life in the cloud, I used Terraform to automate infrastructure setup and deployed everything to AWS. Services run in Docker containers on EC2, PostgreSQL is handled through RDS, and Kafka takes care of async communication between services using the Outbox pattern for reliability.
 
 ## Features
 
@@ -39,24 +41,21 @@ _This README will be continuously updated to reflect the latest changes and impr
 
 ## Architecture
 
-The project follows the **Hexagonal Architecture (Ports and Adapters)** pattern, emphasizing **Domain-Driven Design (DDD)** and **Clean Architecture** principles. This ensures a clear separation of concerns and promotes scalability and maintainability.
+Built around Hexagonal Architecture (Ports and Adapters) with Domain-Driven Design (DDD). Each service has clear boundaries:
 
-- **Domain Layer**: Contains business logic and domain entities.
-- **Application Layer**: Coordinates application activities and use cases.
-- **Infrastructure Layer**: Deals with external systems like databases and messaging.
-- **Outbox Pattern Implementation**: Ensures reliable communication between microservices by persisting messages in an outbox table in the database and then publishing them to the message broker.
+- **Domain Layer**: Business logic and domain entities.
+- **Application Layer**: Use cases and service orchestration
+- **Infrastructure Layer**: Databases, Kafka, and cloud interactions
+- **Outbox Pattern Implementation**: Ensures reliable communication between microservices by showing messages in an outbox table in the database and then publishing them to the message broker.
 
-## Technologies Used
+## Tech Stack
 
-- **Programming Language**: Java 17
-- **Frameworks and Libraries**:
-    - Spring Boot
-    - Spring Data JPA
-    - Spring Transaction Management
-- **Messaging and Streaming**: Apache Kafka
-- **Database**: PostgreSQL
-- **Containerization**: Docker
-- **Build Tool**: Maven
+- **Java 17**, Spring Boot, Spring Data JPA, Spring Transactions
+- **Apache Kafka** for messaging
+- **PostgreSQL** (via AWS RDS Free Tier)
+- **Docker** to containerize microservices
+- **Terraform** to automate AWS infrastructure setup (EC2, RDS)
+- **Maven** for building everything
 
 ## Project Structure
 
@@ -88,7 +87,7 @@ Each microservice comprises:
 
 ### Steps
 
-1. **Clone the Repository**
+1. **Clone the repository**
 
    ```bash
    git clone https://github.com/sogutemir/FoodOrderingSystem.git
@@ -100,13 +99,13 @@ Each microservice comprises:
    cd FoodOrderingSystem
    ```
 
-3. **Build the Project**
+3. **Build the project**
 
    ```bash
    mvn clean package
    ```
 
-4. **Start Docker Containers**
+4. **Start Kafka and Zookeeper**
 
    Ensure that Docker is running, then start the required services:
 
@@ -116,7 +115,7 @@ Each microservice comprises:
    docker-compose -f common.yml -f zookeeper.yml up -d
    ```
 
-5. **Run Microservices**
+5. **Run the services**
 
    Open separate terminals for each microservice and run:
 
