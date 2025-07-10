@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class OrderGlobalExceptionHandler extends GlobalExceptionHandler {
 
+    // Handles general domain-related exceptions that occur within the Order Service.
+    // These typically involve validation or business logic violations.
     @ResponseBody
     @ExceptionHandler(value = {OrderDomainException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -26,6 +28,7 @@ public class OrderGlobalExceptionHandler extends GlobalExceptionHandler {
                 .build();
     }
 
+    // Handles cases where an order is not found in the system (e.g., querying by invalid ID).
     @ResponseBody
     @ExceptionHandler(value = {OrderNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
