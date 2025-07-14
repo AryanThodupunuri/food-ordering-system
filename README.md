@@ -48,6 +48,8 @@ This project uses a Hexagonal Architecture (Ports and Adapters) with Domain-Driv
 - **Infrastructure Layer**: Databases, Kafka, and cloud interactions
 - **Outbox Pattern Implementation**: Ensures reliable communication between microservices by showing messages in an outbox table in the database and then publishing them to the message broker.
 
+![Microservices Diagram Picture](MicroservicesDiagram.png)
+
 ## Tech Stack
 
 - **Java 17**, Spring Boot, Spring Data JPA, Spring Transactions
