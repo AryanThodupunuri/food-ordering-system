@@ -9,6 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * Main entry point for the Order Service.
+ * Implements the OrderApplicationService interface which exposes methods to create and track orders.
+ * Delegates command logic to dedicated handlers.
+ */
 @Slf4j
 @Validated
 @Service
@@ -24,11 +29,13 @@ class OrderApplicationServiceImpl implements OrderApplicationService {
         this.orderTrackCommandHandler = orderTrackCommandHandler;
     }
 
+
     @Override
     public CreateOrderResponse createOrder(CreateOrderCommand createOrderCommand) {
         return orderCreateCommandHandler.createOrder(createOrderCommand);
     }
 
+    // Handles order tracking requests by delegating to the tracking command handler
     @Override
     public TrackOrderResponse trackOrder(TrackOrderQuery trackOrderQuery) {
         return orderTrackCommandHandler.trackOrder(trackOrderQuery);

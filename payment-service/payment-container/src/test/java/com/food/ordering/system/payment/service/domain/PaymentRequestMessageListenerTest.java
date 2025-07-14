@@ -24,6 +24,11 @@ import static com.food.ordering.system.saga.order.SagaConstants.ORDER_SAGA_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
+/**
+ * Integration test to verify PaymentRequestMessageListener handles duplicate payment requests safely,
+ * both in sequential and concurrent scenarios.
+ */
 @Slf4j
 @SpringBootTest(classes = PaymentServiceApplication.class)
 public class PaymentRequestMessageListenerTest {
@@ -34,22 +39,37 @@ public class PaymentRequestMessageListenerTest {
     @Autowired
     private OrderOutboxJpaRepository orderOutboxJpaRepository;
 
+    // Test values for customer ID and order price
     private final static String CUSTOMER_ID = "d215b5f8-0249-4dc5-89a3-51fd148cfb41";
     private final static BigDecimal PRICE = new BigDecimal("100");
 
+    /**
+     * Test duplicate payment handling by simulating two identical payment requests in sequence.
+     * The second call should not result in a new outbox entry.
+     */
     @Test
     void testDoublePayment() {
         String sagaId = UUID.randomUUID().toString();
+
+        // First payment request should succeed
         paymentRequestMessageListener.completePayment(getPaymentRequest(sagaId));
         try {
+            // Second payment request (duplicate) should be ignored or throw exception
             paymentRequestMessageListener.completePayment(getPaymentRequest(sagaId));
         } catch (DataAccessException e) {
+            // Log SQL error if thrown
             log.error("DataAccessException occurred with sql state: {}",
                     ((PSQLException) Objects.requireNonNull(e.getRootCause())).getSQLState());
         }
+
+        // Assert only one entry was saved to the outbox table
         assertOrderOutbox(sagaId);
     }
 
+    /**
+     * Test duplicate payment handling under concurrent execution using threads.
+     * Simulates a race condition where two threads try to complete the same payment.
+     */
     @Test
     void testDoublePaymentWithThreads() {
         String sagaId = UUID.randomUUID().toString();
@@ -59,6 +79,7 @@ public class PaymentRequestMessageListenerTest {
             executor = Executors.newFixedThreadPool(2);
             List<Callable<Object>> tasks = new ArrayList<>();
 
+            // Thread 1: Try to complete the same payment
             tasks.add(Executors.callable(() -> {
                 try {
                     paymentRequestMessageListener.completePayment(getPaymentRequest(sagaId));
@@ -68,6 +89,7 @@ public class PaymentRequestMessageListenerTest {
                 }
             }));
 
+            // Thread 2: Try to complete the same payment
             tasks.add(Executors.callable(() -> {
                 try {
                     paymentRequestMessageListener.completePayment(getPaymentRequest(sagaId));
@@ -77,8 +99,10 @@ public class PaymentRequestMessageListenerTest {
                 }
             }));
 
+            // Execute both threads concurrently
             executor.invokeAll(tasks);
 
+            // Ensure only one outbox event is persisted
             assertOrderOutbox(sagaId);
         } catch (InterruptedException e) {
             log.error("Error calling complete payment!", e);
@@ -89,6 +113,10 @@ public class PaymentRequestMessageListenerTest {
         }
     }
 
+    /**
+     * Helper method to verify an outbox entry exists for the given sagaId.
+     * Ensures the payment was processed exactly once.
+     */
     private void assertOrderOutbox(String sagaId) {
         Optional<OrderOutboxEntity> orderOutboxEntity = orderOutboxJpaRepository
                 .findByTypeAndSagaIdAndPaymentStatusAndOutboxStatus(ORDER_SAGA_NAME,
@@ -99,6 +127,10 @@ public class PaymentRequestMessageListenerTest {
         assertEquals(orderOutboxEntity.get().getSagaId().toString(), sagaId);
     }
 
+    /**
+     * Helper method to build a PaymentRequest DTO.
+     * This mimics an incoming message for a new payment.
+     */
     private PaymentRequest getPaymentRequest(String sagaId) {
         return PaymentRequest.builder()
                 .id(UUID.randomUUID().toString())

@@ -24,11 +24,11 @@
 
 ## Overview
 
-This project is a backend system for a food ordering app, designed around a microservices architecture. It lets customers place orders from restaurants, handles payments, manages menus, and sends real-time updates—all behind the scenes.
+This project is a backend system for a food ordering app designed around a microservices architecture. The goal was to model how real-world platforms like Uber Eats or DoorDash might handle things like placing orders, processing payments, managing restaurant approvals, and handling customer data.
 
-I built it using Java 17 and Spring Boot, with a strong focus on clean code and scalable design. Each part of the system (like ordering, payments, restaurant ops, and customer info) is broken into independent services.
+Everything is written in Java (using Spring Boot), and the services talk to each other asynchronously using Kafka. To make communication reliable, I implemented the Outbox pattern, so messages won’t get lost if something fails.
 
-To bring it to life in the cloud, I used Terraform to automate infrastructure setup and deployed everything to AWS. Services run in Docker containers on EC2, PostgreSQL is handled through RDS, and Kafka takes care of async communication between services using the Outbox pattern for reliability.
+To bring it to life in the cloud, I used Terraform to deploy the system to AWS. The services run in Docker containers on EC2, PostgreSQL hosted on RDS, and Kafka takes care of async communication between services using the Outbox pattern for reliability.
 
 ## Features
 
@@ -41,10 +41,10 @@ To bring it to life in the cloud, I used Terraform to automate infrastructure se
 
 ## Architecture
 
-Built around Hexagonal Architecture (Ports and Adapters) with Domain-Driven Design (DDD). Each service has clear boundaries:
+This project uses a Hexagonal Architecture (Ports and Adapters) with Domain-Driven Design. Each service has clear boundaries and is structured like this:
 
-- **Domain Layer**: Business logic and domain entities.
-- **Application Layer**: Use cases and service orchestration
+- **Domain Layer**: All the core business logic and domain entities
+- **Application Layer**: Use cases and services
 - **Infrastructure Layer**: Databases, Kafka, and cloud interactions
 - **Outbox Pattern Implementation**: Ensures reliable communication between microservices by showing messages in an outbox table in the database and then publishing them to the message broker.
 
@@ -206,45 +206,15 @@ For detailed API documentation, refer to the [API Documentation](https://github.
 
 ## Data Flow
 
-1. **Order Placement**: Customer places an order via the **Order Service**.
-2. **Outbox Logging**: The **Order Service** saves the order and writes an event to the outbox table within the same transaction.
-3. **Message Dispatch**: A background process reads events from the outbox table and publishes them to **Apache Kafka**.
-4. **Payment Processing**: The **Payment Service** consumes the event from Kafka, processes the payment, and uses the Outbox pattern to communicate back.
-5. **Order Approval**: The **Restaurant Service** receives the event, approves the order, and updates the order status.
-6. **Notification**: The customer receives updates on the order status.
+1. A customer places an order via the Order Service
+2. An event is logged to the Outbox table (inside the same DB transaction)
+3. The system publishes the event to Kafka
+4. The Payment Service listens to the event and processes the payment
+5. Once payment is confirmed, the Restaurant Service approves the order
+6. The customer gets updates in real time
 
-_By utilizing the Outbox pattern, we ensure that message delivery between microservices is reliable and consistent, maintaining data integrity across services._
+By utilizing the Outbox pattern, we ensure that message delivery between microservices is reliable and consistent, maintaining data integrity across services._
 
-## Development Guidelines
-
-### Adding a New Feature
-
-1. **Domain Layer**
-
-    - Define new entities or value objects.
-    - Implement business logic and rules.
-
-2. **Application Layer**
-
-    - Create or update application services.
-    - Define use cases.
-
-3. **Data Access Layer**
-
-    - Add or modify repository interfaces.
-    - Implement data access logic.
-    - Implement Outbox entities and repositories if necessary.
-
-4. **Messaging**
-
-    - Update Kafka producers and consumers.
-    - Define new topics if necessary.
-    - Ensure messages are written to the Outbox table within the same transaction as the domain event.
-
-5. **API Layer**
-
-    - Update controllers.
-    - Define new endpoints.
 
 ### Testing
 
@@ -255,7 +225,7 @@ _By utilizing the Outbox pattern, we ensure that message delivery between micros
 
 ## Contributing
 
-We welcome contributions! To contribute:
+To contribute:
 
 1. **Fork the Project**
 
@@ -283,11 +253,7 @@ We welcome contributions! To contribute:
 
 5. **Open a Pull Request**
 
-   Submit your pull request, and we will review it as soon as possible.
-
-## License
-
-This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/sogutemir/FoodOrderingSystem/blob/main/LICENSE) file for details.
+   Submit your pull request, and I will review it as soon as possible.
 
 ## Contact
 
