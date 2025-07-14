@@ -31,6 +31,8 @@ public class RestaurantApprovalRequestHelper {
     private final RestaurantRepository restaurantRepository;
     private final OrderApprovalRepository orderApprovalRepository;
     private final OrderOutboxHelper orderOutboxHelper;
+    
+    // Publishes a response message to Kafka once the approval is processed
     private final RestaurantApprovalResponseMessagePublisher restaurantApprovalResponseMessagePublisher;
 
 
@@ -50,8 +52,10 @@ public class RestaurantApprovalRequestHelper {
         this.restaurantApprovalResponseMessagePublisher = restaurantApprovalResponseMessagePublisher;
     }
 
+    // Handles a new incomingrestaurant approval request
     @Transactional
     public void persistOrderApproval(RestaurantApprovalRequest restaurantApprovalRequest) {
+        // Prevent reprocessing if already completed
         if (publishIfOutboxMessageProcessed(restaurantApprovalRequest)) {
             log.info("An outbox message with saga id: {} already saved to database!",
                     restaurantApprovalRequest.getSagaId());
@@ -59,14 +63,23 @@ public class RestaurantApprovalRequestHelper {
         }
 
         log.info("Processing restaurant approval for order id: {}", restaurantApprovalRequest.getOrderId());
+        
+        // Holds and business rule validation errors
         List<String> failureMessages = new ArrayList<>();
+        
+        // Retrieve and validate restaurant details
         Restaurant restaurant = findRestaurant(restaurantApprovalRequest);
+        
+        // Perform domain-level order validation and approval
         OrderApprovalEvent orderApprovalEvent =
                 restaurantDomainService.validateOrder(
                         restaurant,
                         failureMessages);
+        
+        // Persist the approval result
         orderApprovalRepository.save(restaurant.getOrderApproval());
 
+        // Save outbox message to be picked up by publisher
         orderOutboxHelper
                 .saveOrderOutboxMessage(restaurantDataMapper.orderApprovalEventToOrderEventPayload(orderApprovalEvent),
                         orderApprovalEvent.getOrderApproval().getApprovalStatus(),

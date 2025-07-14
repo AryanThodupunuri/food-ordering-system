@@ -18,6 +18,8 @@ public class OrderApprovalRepositoryImpl implements OrderApprovalRepository {
         this.restaurantDataAccessMapper = restaurantDataAccessMapper;
     }
 
+    // Persists an OrderApproval domain object into the database
+    // Maps the domain object to JPA entity and then back to domain after saving
     @Override
     public OrderApproval save(OrderApproval orderApproval) {
         return restaurantDataAccessMapper

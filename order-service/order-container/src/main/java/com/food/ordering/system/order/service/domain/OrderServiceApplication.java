@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 /** 
 * Main entry point for the Order Service application
  * Bootstrap for the Spring Boot application, configures component scanning,
- * enables JPA repositories, and specifies entity scanning for data access layers.
+ * Enables JPA repositories, and specifies entity scanning for data access layers.
  */
 @EnableJpaRepositories(basePackages = { 
     "com.food.ordering.system.order.service.dataaccess", 

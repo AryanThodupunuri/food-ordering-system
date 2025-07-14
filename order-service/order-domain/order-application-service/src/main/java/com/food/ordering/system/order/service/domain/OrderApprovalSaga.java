@@ -47,6 +47,9 @@ public class OrderApprovalSaga implements SagaStep<RestaurantApprovalResponse> {
         this.orderDataMapper = orderDataMapper;
     }
 
+
+    // Main method that gets triggered when a restaurant approval message is received.
+    // If the saga is in PROCESSING state, we approve the order and update both outbox messages.
     @Override
     @Transactional
     public void process(RestaurantApprovalResponse restaurantApprovalResponse) {
@@ -63,19 +66,25 @@ public class OrderApprovalSaga implements SagaStep<RestaurantApprovalResponse> {
 
         OrderApprovalOutboxMessage orderApprovalOutboxMessage = orderApprovalOutboxMessageResponse.get();
 
+        // Transition the order status to APPROVED
         Order order = approveOrder(restaurantApprovalResponse);
 
+        // Map new order status to its corresponding saga status
         SagaStatus sagaStatus = orderSagaHelper.orderStatusToSagaStatus(order.getOrderStatus());
 
+        // Update the approval outbox message with final status
         approvalOutboxHelper.save(getUpdatedApprovalOutboxMessage(orderApprovalOutboxMessage,
                 order.getOrderStatus(), sagaStatus));
 
+        // Also update the payment outbox to move it to the next saga step
         paymentOutboxHelper.save(getUpdatedPaymentOutboxMessage(restaurantApprovalResponse.getSagaId(),
                 order.getOrderStatus(), sagaStatus));
 
         log.info("Order with id: {} is approved", order.getId().getValue());
     }
 
+    // Handles the rollback when a restaurant REJECTS an order.
+    // Cancels the order and publishes a payment refund message to the outbox.
     @Override
     @Transactional
     public void rollback(RestaurantApprovalResponse restaurantApprovalResponse) {
@@ -92,13 +101,17 @@ public class OrderApprovalSaga implements SagaStep<RestaurantApprovalResponse> {
 
         OrderApprovalOutboxMessage orderApprovalOutboxMessage = orderApprovalOutboxMessageResponse.get();
 
+        // Cancel the order and generate a domain event
         OrderCancelledEvent domainEvent = rollbackOrder(restaurantApprovalResponse);
 
+        // Determine the new saga status based on order status
         SagaStatus sagaStatus = orderSagaHelper.orderStatusToSagaStatus(domainEvent.getOrder().getOrderStatus());
 
+        // Update the approval outbox message accordingly
         approvalOutboxHelper.save(getUpdatedApprovalOutboxMessage(orderApprovalOutboxMessage,
                 domainEvent.getOrder().getOrderStatus(), sagaStatus));
 
+        // Create a new payment outbox message to trigger refund logic
         paymentOutboxHelper.savePaymentOutboxMessage(orderDataMapper
                 .orderCancelledEventToOrderPaymentEventPayload(domainEvent),
                 domainEvent.getOrder().getOrderStatus(),
@@ -109,6 +122,7 @@ public class OrderApprovalSaga implements SagaStep<RestaurantApprovalResponse> {
         log.info("Order with id: {} is cancelling", domainEvent.getOrder().getId().getValue());
     }
 
+    // Helper method to mark the order as approved and persist the state change
     private Order approveOrder(RestaurantApprovalResponse restaurantApprovalResponse) {
         log.info("Approving order with id: {}", restaurantApprovalResponse.getOrderId());
         Order order = orderSagaHelper.findOrder(restaurantApprovalResponse.getOrderId());
@@ -117,6 +131,7 @@ public class OrderApprovalSaga implements SagaStep<RestaurantApprovalResponse> {
         return order;
     }
 
+    // Updates an approval outbox message with new status and timestamp
     private OrderApprovalOutboxMessage getUpdatedApprovalOutboxMessage(OrderApprovalOutboxMessage
                                                                                orderApprovalOutboxMessage,
                                                                        OrderStatus
@@ -129,6 +144,7 @@ public class OrderApprovalSaga implements SagaStep<RestaurantApprovalResponse> {
         return orderApprovalOutboxMessage;
     }
 
+    // Retrieves and updates the correspponding payment outbox message for the current saga
     private OrderPaymentOutboxMessage getUpdatedPaymentOutboxMessage(String sagaId,
                                                                      OrderStatus orderStatus,
                                                                      SagaStatus sagaStatus) {
@@ -145,6 +161,7 @@ public class OrderApprovalSaga implements SagaStep<RestaurantApprovalResponse> {
         return orderPaymentOutboxMessage;
     }
 
+    // Cancels the order based on the failure messages from the restaurant.
     private OrderCancelledEvent rollbackOrder(RestaurantApprovalResponse restaurantApprovalResponse) {
         log.info("Cancelling order with id: {}", restaurantApprovalResponse.getOrderId());
         Order order = orderSagaHelper.findOrder(restaurantApprovalResponse.getOrderId());
