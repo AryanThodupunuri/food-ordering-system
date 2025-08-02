@@ -49,18 +49,22 @@ public class RestaurantApprovalRequestKafkaListener implements KafkaConsumer<Res
 
         messages.forEach(restaurantApprovalRequestAvroModel -> {
             try {
+                // Log the incoming order ID
                 log.info("Processing order approval for order id: {}", restaurantApprovalRequestAvroModel.getOrderId());
+                // Convert Avro model to domain object and process approval
                 restaurantApprovalRequestMessageListener.approveOrder(restaurantMessagingDataMapper.
                         restaurantApprovalRequestAvroModelToRestaurantApproval(restaurantApprovalRequestAvroModel));
             } catch (DataAccessException e) {
+                // Handle SQL-related issues, especially unique constraint violations
                 SQLException sqlException = (SQLException) e.getRootCause();
                 if (sqlException != null && sqlException.getSQLState() != null &&
                         PSQLState.UNIQUE_VIOLATION.getState().equals(sqlException.getSQLState())) {
-                    //NO-OP for unique constraint exception
+                    // NO-OP: duplicate insert is expected in idempotent design
                     log.error("Caught unique constraint exception with sql state: {} " +
                                     "in RestaurantApprovalRequestKafkaListener for order id: {}",
                             sqlException.getSQLState(), restaurantApprovalRequestAvroModel.getOrderId());
                 } else {
+                    // Throw custom exception for all other DB errors
                     throw new RestaurantApplicationServiceException("Throwing DataAccessException in" +
                             " RestaurantApprovalRequestKafkaListener: " + e.getMessage(), e);
                 }

@@ -30,14 +30,28 @@ Everything is written in Java (using Spring Boot), and the services talk to each
 
 To bring it to life in the cloud, I used Terraform to deploy the system to AWS. The services run in Docker containers on EC2, PostgreSQL hosted on RDS, and Kafka takes care of async communication between services using the Outbox pattern for reliability.
 
-## Features
+## Microservices
 
-- **Order Management**: Place, track, and manage food orders.
-- **Payment Processing**: Secure and reliable payment transactions.
-- **Restaurant Interface**: Restaurants can approve or reject orders.
-- **Customer Profiles**: Manage customer information and order history.
-- **Real-Time Notifications**: Updates via Apache Kafka messaging.
-- **Reliable Messaging with Outbox Pattern**: Ensures consistent and reliable message delivery between services.
+### Order Service
+- Accepts customer orders
+- Saves order to DB
+- Initiates Saga transaction
+- Sends `order-created` Kafka event  
+**→ Tech:** Kafka Producer, Outbox, JPA
+
+### Restaurant Service
+- Receives approval requests
+- Validates restaurant and items
+- Sends `restaurant-approved` or `restaurant-rejected` event  
+**→ Tech:** Kafka Consumer/Producer
+
+### Payment Service
+- Processes payment post approval
+- Sends `payment-completed` or `payment-failed` event  
+**→ Tech:** Kafka Consumer/Producer
+
+### Customer Service
+- Handles customer registration and lookup
 
 ## Architecture
 

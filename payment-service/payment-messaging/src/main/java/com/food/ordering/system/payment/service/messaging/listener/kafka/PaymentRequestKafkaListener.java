@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.sql.SQLException;
 import java.util.List;
 
+// Kafka listener that listens to payment request events from Kafka.
 @Slf4j
 @Component
 public class PaymentRequestKafkaListener implements KafkaConsumer<PaymentRequestAvroModel> {
@@ -32,6 +33,8 @@ public class PaymentRequestKafkaListener implements KafkaConsumer<PaymentRequest
         this.paymentMessagingDataMapper = paymentMessagingDataMapper;
     }
 
+    // Main method that receives payment request events from Kafka.
+    // Triggered when messages are published to the configured payment request topic.
     @Override
     @KafkaListener(id = "${kafka-consumer-config.payment-consumer-group-id}",
                 topics = "${payment-service.payment-request-topic-name}")
@@ -47,16 +50,23 @@ public class PaymentRequestKafkaListener implements KafkaConsumer<PaymentRequest
 
         messages.forEach(paymentRequestAvroModel -> {
             try {
+                // Handle PENDING payment request
                 if (PaymentOrderStatus.PENDING == paymentRequestAvroModel.getPaymentOrderStatus()) {
                     log.info("Processing payment for order id: {}", paymentRequestAvroModel.getOrderId());
+                    
+                    // Convert Avro model to domain object and process payment
                     paymentRequestMessageListener.completePayment(paymentMessagingDataMapper
                             .paymentRequestAvroModelToPaymentRequest(paymentRequestAvroModel));
-                } else if(PaymentOrderStatus.CANCELLED == paymentRequestAvroModel.getPaymentOrderStatus()) {
+                } 
+                // Handle CANCELLED payment request
+                else if(PaymentOrderStatus.CANCELLED == paymentRequestAvroModel.getPaymentOrderStatus()) {
                     log.info("Cancelling payment for order id: {}", paymentRequestAvroModel.getOrderId());
+                    // Convert Avro model to domain object and cancel payment
                     paymentRequestMessageListener.cancelPayment(paymentMessagingDataMapper
                             .paymentRequestAvroModelToPaymentRequest(paymentRequestAvroModel));
                 }
             } catch (DataAccessException e) {
+                // Handle database-related exceptions
                 SQLException sqlException = (SQLException) e.getRootCause();
                 if (sqlException != null && sqlException.getSQLState() != null &&
                         PSQLState.UNIQUE_VIOLATION.getState().equals(sqlException.getSQLState())) {
@@ -65,6 +75,7 @@ public class PaymentRequestKafkaListener implements KafkaConsumer<PaymentRequest
                                     "in PaymentRequestKafkaListener for order id: {}",
                             sqlException.getSQLState(), paymentRequestAvroModel.getOrderId());
                 } else {
+                    // Throw custom application exception for all other SQL errors
                     throw new PaymentApplicationServiceException("Throwing DataAccessException in" +
                             " PaymentRequestKafkaListener: " + e.getMessage(), e);
                 }

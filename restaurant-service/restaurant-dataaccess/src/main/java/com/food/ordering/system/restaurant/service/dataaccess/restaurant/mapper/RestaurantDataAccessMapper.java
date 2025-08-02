@@ -28,10 +28,12 @@ public class RestaurantDataAccessMapper {
     }
 
     public Restaurant restaurantEntityToRestaurant(List<RestaurantEntity> restaurantEntities) {
+        // Use the first entity to get general restaurant info
         RestaurantEntity restaurantEntity =
                 restaurantEntities.stream().findFirst().orElseThrow(() ->
                         new RestaurantDataAccessException("No restaurants found!"));
 
+        // Convert each entity into a Product and collect them
         List<Product> restaurantProducts = restaurantEntities.stream().map(entity ->
                         Product.builder()
                                 .productId(new ProductId(entity.getProductId()))
@@ -41,6 +43,7 @@ public class RestaurantDataAccessMapper {
                                 .build())
                 .collect(Collectors.toList());
 
+        // Build and return the Restaurant domain object
         return Restaurant.builder()
                 .restaurantId(new RestaurantId(restaurantEntity.getRestaurantId()))
                 .orderDetail(OrderDetail.builder()
@@ -50,6 +53,7 @@ public class RestaurantDataAccessMapper {
                 .build();
     }
 
+    // Maps a domain OrderApproval object to a JPA entity (OrderApprovalEntity).
     public OrderApprovalEntity orderApprovalToOrderApprovalEntity(OrderApproval orderApproval) {
         return OrderApprovalEntity.builder()
                 .id(orderApproval.getId().getValue())
@@ -59,6 +63,7 @@ public class RestaurantDataAccessMapper {
                 .build();
     }
 
+    // Maps a JPA OrderApprovalEntity to a domain OrderApproval object.
     public OrderApproval orderApprovalEntityToOrderApproval(OrderApprovalEntity orderApprovalEntity) {
         return OrderApproval.builder()
                 .orderApprovalId(new OrderApprovalId(orderApprovalEntity.getId()))
