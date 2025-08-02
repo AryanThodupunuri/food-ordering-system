@@ -1,6 +1,15 @@
 # Food Ordering System
 
 [![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+![Spring Boot](https://img.shields.io/badge/SpringBoot-3.0-blue)
+![Kafka](https://img.shields.io/badge/Kafka-Event--Driven-black)
+![Docker](https://img.shields.io/badge/Containerized-Docker-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-RDS-success)
+![JWT](https://img.shields.io/badge/Security-JWT-lightgrey)
+![Deployed](https://img.shields.io/badge/Deployed-AWS-yellowgreen)
+![Terraform](https://img.shields.io/badge/IaC-Terraform-purple)
+![Tested](https://img.shields.io/badge/Tests-JUnit%20%2B%20Testcontainers-brightgreen)
+
 
 
 ## Table of Contents
@@ -23,12 +32,19 @@
 - [Contact](#contact)
 
 ## Overview
+This project is a backend system for a food ordering app, inspired by how real platforms like DoorDash or Uber Eats work behind the scenes. It follows a microservices architecture, where different parts of the system like orders, payments, and restaurant approvals are built as independent services.
 
-This project is a backend system for a food ordering app designed around a microservices architecture. The goal was to model how real-world platforms like Uber Eats or DoorDash might handle things like placing orders, processing payments, managing restaurant approvals, and handling customer data.
-
-Everything is written in Java (using Spring Boot), and the services talk to each other asynchronously using Kafka. To make communication reliable, I implemented the Outbox pattern, so messages won’t get lost if something fails.
+Instead of having the services talk directly to each other, they communicate by sending messages through Apache Kafka, which helps keep everything flexible and reliable. To make sure transactions (like ordering and paying) stay consistent across services, I used a design called the Saga pattern with something called the Outbox pattern, which helps avoid data issues.
 
 To bring it to life in the cloud, I used Terraform to deploy the system to AWS. The services run in Docker containers on EC2, PostgreSQL hosted on RDS, and Kafka takes care of async communication between services using the Outbox pattern for reliability.
+
+## Why I Built This
+
+I wanted to go beyond simple side projects and build something that actually mirrors how modern backend systems work in production. So I set out to recreate a food delivery system similar to what you'd find behind platforms like DoorDash or Uber Eats where different services work together, even when things get complicated
+
+It definitely took some time to get everything working end-to-end. I had to design the logic for handling multi-step actions across services, connect everything through Kafka, and deal with issues like delays and retries when one service is slower than another. But that challenge was the point. I wanted to push myself to think like a backend engineer, not just write code.
+
+This project helped me apply concepts like domain-driven design, event-driven communication, and infrastructure-as-code (Terraform) in a real way. Everything is containerized with Docker and deployed to AWS, so it simulates a production-level system that’s resilient and scalable.
 
 ## Microservices
 
