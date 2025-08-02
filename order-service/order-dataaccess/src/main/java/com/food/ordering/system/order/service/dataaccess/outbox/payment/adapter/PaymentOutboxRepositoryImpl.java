@@ -15,12 +15,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Component
+@Component 
 public class PaymentOutboxRepositoryImpl implements PaymentOutboxRepository {
 
     private final PaymentOutboxJpaRepository paymentOutboxJpaRepository;
     private final PaymentOutboxDataAccessMapper paymentOutboxDataAccessMapper;
 
+    
     public PaymentOutboxRepositoryImpl(PaymentOutboxJpaRepository paymentOutboxJpaRepository,
                                        PaymentOutboxDataAccessMapper paymentOutboxDataAccessMapper) {
         this.paymentOutboxJpaRepository = paymentOutboxJpaRepository;
@@ -29,6 +30,7 @@ public class PaymentOutboxRepositoryImpl implements PaymentOutboxRepository {
 
     @Override
     public OrderPaymentOutboxMessage save(OrderPaymentOutboxMessage orderPaymentOutboxMessage) {
+        // Converts domain object → entity → saves to DB → converts back to domain object
         return paymentOutboxDataAccessMapper
                 .paymentOutboxEntityToOrderPaymentOutboxMessage(paymentOutboxJpaRepository
                         .save(paymentOutboxDataAccessMapper
@@ -39,13 +41,14 @@ public class PaymentOutboxRepositoryImpl implements PaymentOutboxRepository {
     public Optional<List<OrderPaymentOutboxMessage>> findByTypeAndOutboxStatusAndSagaStatus(String sagaType,
                                                                                             OutboxStatus outboxStatus,
                                                                                             SagaStatus... sagaStatus) {
+        // Find all outbox messages by saga type, outbox status, and saga status                                                                                        
         return Optional.of(paymentOutboxJpaRepository.findByTypeAndOutboxStatusAndSagaStatusIn(sagaType,
                         outboxStatus,
-                        Arrays.asList(sagaStatus))
+                        Arrays.asList(sagaStatus)) // Convert varargs to list
                 .orElseThrow(() -> new PaymentOutboxNotFoundException("Payment outbox object " +
-                        "could not be found for saga type " + sagaType))
+                        "could not be found for saga type " + sagaType))  // Throw custom exception if empty
                 .stream()
-                .map(paymentOutboxDataAccessMapper::paymentOutboxEntityToOrderPaymentOutboxMessage)
+                .map(paymentOutboxDataAccessMapper::paymentOutboxEntityToOrderPaymentOutboxMessage) // Convert to domain model
                 .collect(Collectors.toList()));
     }
 
@@ -53,6 +56,7 @@ public class PaymentOutboxRepositoryImpl implements PaymentOutboxRepository {
     public Optional<OrderPaymentOutboxMessage> findByTypeAndSagaIdAndSagaStatus(String type,
                                                                                 UUID sagaId,
                                                                                 SagaStatus... sagaStatus) {
+        // Find a single outbox message by type + saga ID + saga status                                                                                
         return paymentOutboxJpaRepository
                 .findByTypeAndSagaIdAndSagaStatusIn(type, sagaId, Arrays.asList(sagaStatus))
                 .map(paymentOutboxDataAccessMapper::paymentOutboxEntityToOrderPaymentOutboxMessage);
@@ -60,6 +64,7 @@ public class PaymentOutboxRepositoryImpl implements PaymentOutboxRepository {
 
     @Override
     public void deleteByTypeAndOutboxStatusAndSagaStatus(String type, OutboxStatus outboxStatus, SagaStatus... sagaStatus) {
+        // Delete all matching outbox entries (used after processing is complete)
         paymentOutboxJpaRepository.deleteByTypeAndOutboxStatusAndSagaStatusIn(type, outboxStatus,
                 Arrays.asList(sagaStatus));
     }

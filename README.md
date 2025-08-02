@@ -81,30 +81,24 @@ Each microservice comprises:
 
 ## Installation and Setup
 
-### Prerequisites
-
-- **Java Development Kit (JDK) 17**
-- **Maven**
-- **Docker & Docker Compose**
+Assuming your project has been set up using:
+- Spring Boot (Java)
+- PostgreSQL via AWS RDS
+- Kafka running in Docker
+- Terraform to provision AWS infrastructure
 
 ### Steps
 
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sogutemir/FoodOrderingSystem.git
+   git clone https://github.com/AryanThodupunuri/food-ordering-system.git
    ```
 
 2. **Navigate to the Project Directory**
 
    ```bash
-   cd FoodOrderingSystem
-   ```
-
-3. **Build the project**
-
-   ```bash
-   mvn clean package
+   cd food-ordering-system
    ```
 
 4. **Start Kafka and Zookeeper**

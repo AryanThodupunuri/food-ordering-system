@@ -23,17 +23,20 @@ public class OrderEntity {
     private UUID restaurantId;
     private UUID trackingId;
     private BigDecimal price;
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING) // Store enum value (OrderStatus) as a String in DB
     private OrderStatus orderStatus;
     private String failureMessages;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    // Reverse side of the one-to-one relationship with OrderAddressEntity
     private OrderAddressEntity address;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    // One order can have multiple items
     private List<OrderItemEntity> items;
 
     @Override
+    // equals() and hashCode() overridden to use UUID for object comparison
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

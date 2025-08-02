@@ -26,6 +26,9 @@ public class Order extends AggregateRoot<OrderId> {
     public static final String FAILURE_MESSAGE_DELIMITER = ",";
 
 
+    public List<OrderItem> getItems() {
+        return items;
+    }
     /**
      * Initializes the order by setting its ID, tracking ID, and status.
      * Also initializes the order items.

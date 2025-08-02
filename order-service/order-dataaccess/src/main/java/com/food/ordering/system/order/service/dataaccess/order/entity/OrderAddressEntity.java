@@ -14,17 +14,18 @@ import java.util.UUID;
 @Table(name = "order_address")
 @Entity
 public class OrderAddressEntity {
-    @Id
+    @Id // Marks this field as the primary key
     private UUID id;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "ORDER_ID")
+    @OneToOne(cascade = CascadeType.ALL) // Each address is linked to one order (and cascade changes)
+    @JoinColumn(name = "ORDER_ID") // Foreign key column in the address table pointing to order ID
     private OrderEntity order;
 
     private String street;
     private String postalCode;
     private String city;
 
+    // equals() and hashCode() overridden for entity identity comparison based on UUID
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
