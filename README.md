@@ -47,6 +47,7 @@ It definitely took some time to get everything working end-to-end. I had to desi
 This project helped me apply concepts like domain-driven design, event-driven communication, and infrastructure-as-code (Terraform) in a real way. Everything is containerized with Docker and deployed to AWS, so it simulates a production-level system that’s resilient and scalable.
 
 ## Microservices
+![Microservices Diagram Picture](MicroservicesDiagram.png)
 
 ### Order Service
 - Accepts customer orders
@@ -78,7 +79,6 @@ This project uses a Hexagonal Architecture (Ports and Adapters) with Domain-Driv
 - **Infrastructure Layer**: Databases, Kafka, and cloud interactions
 - **Outbox Pattern Implementation**: Ensures reliable communication between microservices by showing messages in an outbox table in the database and then publishing them to the message broker.
 
-![Microservices Diagram Picture](MicroservicesDiagram.png)
 
 ## Tech Stack
 
